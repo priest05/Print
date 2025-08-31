@@ -1,5 +1,19 @@
 <template>
   <div class="login-container">
+    <!-- 轮播图背景 -->
+    <div class="carousel-container">
+      <div 
+        class="carousel-item" 
+        v-for="(image, index) in images" 
+        :key="index"
+        :class="{ 'active': currentIndex === index }"
+        :style="{ 'background-image': `url(${image})` }"
+      ></div>
+      <!-- 遮罩层元素 -->
+      <div class="carousel-overlay"></div>
+    </div>
+    
+    <!-- 登录表单 -->
     <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left">
 
       <div class="title-container">
@@ -83,7 +97,16 @@ export default {
       },
       loading: false,
       passwordType: 'password',
-      redirect: undefined
+      redirect: undefined,
+      // 轮播图相关数据
+      images: [
+        require('@/assets/login_images/bg1.png'),
+        require('@/assets/login_images/bg2.png'),
+        require('@/assets/login_images/bg3.png'),
+        require('@/assets/login_images/bg4.png')
+      ],
+      currentIndex: 0,
+      carouselTimer: null
     }
   },
   watch: {
@@ -120,7 +143,26 @@ export default {
           return false
         }
       })
+    },
+    // 轮播图相关方法
+    startCarousel() {
+      this.carouselTimer = setInterval(() => {
+        this.currentIndex = (this.currentIndex + 1) % this.images.length
+      }, 10000) // 每隔10秒切换一次
+    },
+    stopCarousel() {
+      if (this.carouselTimer) {
+        clearInterval(this.carouselTimer)
+        this.carouselTimer = null
+      }
     }
+  },
+  // 生命周期钩子
+  mounted() {
+    this.startCarousel()
+  },
+  beforeDestroy() {
+    this.stopCarousel()
   }
 }
 </script>
@@ -180,8 +222,51 @@ $light_gray:#eee;
 .login-container {
   min-height: 100%;
   width: 100%;
-  background-color: $bg;
+  position: relative;
   overflow: hidden;
+
+  // 轮播图容器样式
+  .carousel-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+  
+    .carousel-item {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+      
+      &.active {
+        opacity: 1;
+      }
+    }
+    
+    // 遮罩层
+    .carousel-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.4); // 黑色半透明遮罩，可以根据需要调整透明度
+      z-index: 1;
+    }
+  }
+  
+  // 登录表单样式，设置z-index使其显示在遮罩层上方
+  .login-form {
+    position: relative;
+    z-index: 2;
+  }
 
   .login-form {
     position: relative;
